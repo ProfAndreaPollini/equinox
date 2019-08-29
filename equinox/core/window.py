@@ -3,56 +3,41 @@ from pyglet.gl import *
 
 from ..render import renderer_init
 
-
-class Window(pyglet.window.Window):
-
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
-       
-        glEnable(GL_DEPTH_TEST)
-        glDepthFunc(GL_LESS)
-        self.set_caption("TEST")
-        #glViewport(0,0,W, H)
-        
-        
-
-        context = pyglet.gl.get_current_context()
-        #self.window = pyglet.window.Window()#context=context)
-    #     #config = pyglet.gl.Config(double_buffer = True, 
-    #                             depth_size = 24, 
-    #                             major_version=4, 
-    #                             minor_version=6, 
-    #                             forward_compatible = True)
-
-    #     self.window = pyglet.window.Window(config=config)#config=Config(major_version=4, minor_version=6))
-        self.push_handlers(self)
-        #renderer_init(self.window)
-        print('OpenGL version:', self.context.get_info().get_version())
-        print('OpenGL 3.2 support:', self.context.get_info().have_version(4,6))
-        
-    def on_resize(self,w,h):
-        glViewport(0,0,w, h)
-   
-    # def on_draw(self):
-    #     #self.window.clear()
-        
-        
-
-    #     self.onDraw()
-        
-
-    # def onDraw(self):
-    #     raise NotImplementedError()
-        
-
-    def run(self):
-       pyglet.app.run()
+from ..core.events import equinoxEvents
 
 
-def equinox_create_window(W,H,title=""):
+def on_mouse_scroll(x, y, scroll_x, scroll_y):
+        #print("SCROLL1: ",scroll_y) 
+        equinoxEvents.cameraEvents.zoom(scroll_y >0)
+
+
+def on_mouse_motion(x, y, dx, dy):  
+    equinoxEvents.cameraEvents.move(x,y,dx,dy)
+
+def on_mouse_press(x, y, button, modifiers):
+    equinoxEvents.cameraEvents.mouse_press(button)
+
+def on_mouse_release(x, y, button, modifiers):
+    equinoxEvents.cameraEvents.mouse_reset()
+
+def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
+    equinoxEvents.cameraEvents.move(x,y,dx,dy)
+
+def equinox_create_window(W,H,title="",debug_fps=False):
     window = pyglet.window.Window(W,H)
     window.set_caption(title)
 
+    window.on_mouse_scroll = on_mouse_scroll
+    window.on_mouse_motion = on_mouse_motion
+    window.on_mouse_press  = on_mouse_press
+    window.on_mouse_release = on_mouse_release
+    window.on_mouse_drag = on_mouse_drag
+
+    
+    
+    if debug_fps: 
+        fps_display =  pyglet.window.FPSDisplay(window=window)
+        return window, fps_display
     return window
 
 
