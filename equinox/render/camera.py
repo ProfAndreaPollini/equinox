@@ -32,7 +32,9 @@ class Camera(Observer):
     def on_camera_move(self,x,y,dx,dy,status):
         if status == equinoxEvents.cameraEvents.TRANSLATION:
             print("move!! ",dx,dy)
-            self.pos +=  0.1 *glm.vec3(0.0,dy,dx)
+            right = glm.normalize(glm.cross(self.front,self.up))
+            self.pos +=  0.1 * dx * right 
+            self.pos +=  0.1 * dy * self.up 
         elif status == equinoxEvents.cameraEvents.ROTATION:
             self.yaw   += dx * equinoxEvents.cameraEvents.SENSITIVITY
             self.pitch += dy * equinoxEvents.cameraEvents.SENSITIVITY
@@ -45,7 +47,7 @@ class Camera(Observer):
             self.update_front()
     
     def on_zoom(self,is_zoom_in):
-        zoom_vel=0.05
+        zoom_vel=0.1
         dir = -1
         if is_zoom_in:
             dir *=-1

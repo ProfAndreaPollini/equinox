@@ -21,12 +21,13 @@ class Renderer:
         def __init__(self):
             self.shader = BasicShader()
             self.lightingShader = LightingShader()
-            
+            glEnable(GL_DEPTH_TEST); 
+            glDepthFunc(GL_LESS);
 
         def prepare(self):
             glClearColor(0.0,0.0,0.0,1.0)
-            glEnable(GL_DEPTH_TEST); 
-            glDepthFunc(GL_LESS);
+
+            
             glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
         def render(self,camera,models):

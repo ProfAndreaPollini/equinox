@@ -1,5 +1,5 @@
 from equinox.core import equinox_create_window,equinox_run,key
-from equinox.models import BasicModel,cleanup,Cube,Terrain
+from equinox.models import BasicModel,cleanup,Cube,Terrain,load_model_from_file
 from equinox.render import Renderer,renderer_init,Camera
 
 import glm
@@ -20,6 +20,8 @@ normals = (
 
 
 
+
+
 W = 1600
 H = 800
 
@@ -28,9 +30,9 @@ window,fps_display = equinox_create_window(W,H,debug_fps=True)
 
 models = []
 
-for i in range(10):
-    models.append(Cube.create())
-
+# for i in range(10):
+#    models.append(load_model_from_file("cube.obj"))#Cube.create())
+models.append(load_model_from_file("cube.obj"))
 terrain = Terrain(800)
 terrainModel  = terrain.create()
 models.append(terrainModel)
