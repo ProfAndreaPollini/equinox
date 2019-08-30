@@ -1,6 +1,6 @@
 
 
-from .basic import BasicModel,cleanup
+from .basic import Model,BasicModel,cleanup
 
 from .cube import Cube
 from .terrain import Terrain
