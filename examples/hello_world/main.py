@@ -19,10 +19,6 @@ normals = (
     0.0,0.0,1.0
 )
 
-
-
-
-
 W = 1600
 H = 800
 
@@ -30,7 +26,7 @@ H = 800
 window,fps_display = equinox_create_window(W,H,debug_fps=True)
 
 models = []
-cube_model_mesh =  Model.mesh_from_file(os.path.join(os.path.dirname(__file__),"ws.obj"))
+cube_model_mesh =  Model.mesh_from_file(os.path.join(os.path.dirname(__file__),"tree.obj"))
 model = BasicModel.model_from_mesh(cube_model_mesh)
 model.scale = glm.vec3(0.001)
 model.load()
