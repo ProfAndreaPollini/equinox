@@ -5,6 +5,7 @@ __pycache__/
 .vscode
 
 
+**/vendor/**
 
 # C extensions
 *.so
@@ -106,4 +107,4 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-equinox/vendor/*
+
