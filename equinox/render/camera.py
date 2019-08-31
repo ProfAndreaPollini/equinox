@@ -38,13 +38,17 @@ class Camera(Observer):
         elif status == equinoxEvents.cameraEvents.ROTATION:
             self.yaw   += dx * equinoxEvents.cameraEvents.SENSITIVITY
             self.pitch += dy * equinoxEvents.cameraEvents.SENSITIVITY
+        
 
             if self.pitch > 89.0:
                 self.pitch =  89.0
             if self.pitch < -89.0:
                 self.pitch = -89.0
-
             self.update_front()
+
+        elif status == equinoxEvents.cameraEvents.ZOOM:
+            d_front = glm.normalize(self.front)*dy* equinoxEvents.cameraEvents.SENSITIVITY
+            self.pos += d_front
     
     def on_zoom(self,is_zoom_in):
         zoom_vel=0.1

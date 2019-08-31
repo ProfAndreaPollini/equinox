@@ -6,6 +6,7 @@ class CameraEvents(pyglet.event.EventDispatcher):
     NONE = 0
     TRANSLATION = 1
     ROTATION = 2
+    ZOOM = 3
 
     #constants
     SENSITIVITY = 0.5
@@ -21,7 +22,8 @@ class CameraEvents(pyglet.event.EventDispatcher):
             self.dispatch_event('on_camera_move',x,y,dx,dy,self.status)
         elif self.status == CameraEvents.ROTATION:
             self.dispatch_event('on_camera_move',x,y,dx,dy,self.status)
-
+        elif self.status == CameraEvents.ZOOM:
+            self.dispatch_event('on_camera_move',x,y,dx,dy,self.status)
     def zoom(self,is_zoom_in=True):
         self.dispatch_event('on_zoom',is_zoom_in)
 
@@ -36,6 +38,8 @@ class CameraEvents(pyglet.event.EventDispatcher):
         elif button == pyglet.window.mouse.RIGHT:
             print("ROTATION")
             self.status = CameraEvents.ROTATION
+        elif button == pyglet.window.mouse.MIDDLE:
+            self.status = CameraEvents.ZOOM
 
      
 
