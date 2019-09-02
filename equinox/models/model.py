@@ -65,7 +65,7 @@ def bindIndicesToBuffer(indices):
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(buffer),buffer,GL_STATIC_DRAW)
 
 
-class Model(ABC):
+class Model:
 
     
     def vao_from_RawMesh(self, mesh: RawMesh):
@@ -77,115 +77,32 @@ class Model(ABC):
         self.vaos.append(vaoID)
 
     def __init__(self):
-        self.pos = glm.vec3(2.0*random()-1, 1.0, 2.0 * random()-1)
-        self.angle = glm.vec3(0.0,0.0,0.0)
-        self.scale = glm.vec3(1.0)
-        self.update()
         self.mesh_data: ModelMesh
-       
-    def scale(self, scale_vec3):
-        self.scale = scale_vec3
-
-    def rotate(self,v):
-        self.angle.x += v.x 
-        self.angle.y += v.y 
-        self.angle.z += v.z 
-
-    def rotate(self,x,y,z):
-        self.angle.x += x 
-        self.angle.y += y 
-        self.angle.z += z
-
-    def move(self,dx=0,dy=0,dz=0):
-        self.pos += glm.vec3(dx,dy,dz)
-        
-
-    def update(self):
-        self.modelMatrix = glm.mat4(1.0)
-        
-        self.modelMatrix = glm.translate(self.modelMatrix,self.pos);
-        
-        self.modelMatrix = glm.rotate(self.modelMatrix, glm.radians(self.angle.x), glm.vec3(1.0, 0.0, 0.0))
-        self.modelMatrix = glm.rotate(self.modelMatrix, glm.radians(self.angle.y), glm.vec3(0.0, 1.0, 0.0))
-        self.modelMatrix = glm.rotate(self.modelMatrix, glm.radians(self.angle.z), glm.vec3(0.0, 0.0, 1.0))
-        #self.modelMatrix = glm.scale(self.modelMatrix,self.scale );
-    
-    
+        self.vaos = []
 
     @staticmethod
     def model_from_mesh(model_mesh: ModelMesh):
-        model = BasicModel()
+        model = Model()
         model.mesh_data = model_mesh
         return model
 
     
     def load(self):
-        self.vaos = []
+        
         for mesh in self.mesh_data.mesh_list:
             method_name = str(type(mesh)).split(".")[-1].split("'")[0]
             getattr(self, 'vao_from_'+method_name)(mesh)
-            
-    @abstractmethod
-    def draw(self, shader):
-        pass
-
-class BasicModel(Model):
-
-    @staticmethod
-    def create(vertices):
-        vaoID = createVAO()
-        storeDataInVBO(0,3,vertices)
-        unbindVAO()
-        return BasicModel(vao=vaoID,size = len(vertices)/3)
-
-    @staticmethod
-    def create(vertices, normals):
-        vaoID = createVAO()
-        storeDataInVBO(0,3,vertices)
-        storeDataInVBO(1,3,normals)
-        unbindVAO()
-        return BasicModel(vao=vaoID,size = len(vertices)/3)
-
-    @staticmethod
-    def create(indices, vertices, normals):
-        model_mesh = ModelMesh()
-        model_mesh.add(Mesh())
-        model = BasicModel()
-        model.mesh_data = model_mesh
-        return model
-
-    def __init__(self, vao=0,size=0):
-        super().__init__()
-        self.vao = vao
-        self.size = size
-        
-    
-            
-    
-
-    def _vao_from_mesh(self,aMesh: Mesh):
-        vaoID = createVAO()
-        bindIndicesToBuffer([i for i in range(len(aMesh.vertices))])
-        storeDataInVBO(0,3,aMesh.vertices)
-        storeDataInVBO(1,3,aMesh.normals)
-        unbindVAO()
-        self.vaos.append(vaoID)
-
-    
-  
-       
-    
 
     def draw(self, shader):
         
         for i, vao in enumerate(self.vaos):
-            shader.setUniformVec3("objectColor",self.mesh_data.mesh_list[i].material_info.color)
+            shader.setUniformVec3("objectColor", self.mesh_data.mesh_list[i].material_info.color)
             glBindVertexArray(self.vaos[i])
             glEnableVertexAttribArray(0)
             glEnableVertexAttribArray(1)
             glEnableVertexAttribArray(2)
             #print(len(self.mesh_data.mesh_list[i].vertices))
-            glDrawElements(GL_TRIANGLES,int(len(self.mesh_data.mesh_list[i].vertices)),GL_UNSIGNED_INT,0)
+            glDrawElements(GL_TRIANGLES, int(len(self.mesh_data.mesh_list[i].vertices)), GL_UNSIGNED_INT, 0)
             glDisableVertexAttribArray(2)
             glDisableVertexAttribArray(1)
             glDisableVertexAttribArray(0)

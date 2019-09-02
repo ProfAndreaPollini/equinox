@@ -1,14 +1,14 @@
 from equinox.core import equinox_create_window,equinox_run,key
-from equinox.models import BasicModel,cleanup,Cube
+from equinox.models import Model,cleanup
 from equinox.render import Renderer,renderer_init,Camera
 
 import glm
 
 from random import random
-from .basic import bindIndicesToBuffer, storeDataInVBO,BasicModel,createVAO,unbindVAO
+from .model import bindIndicesToBuffer, storeDataInVBO,createVAO,unbindVAO
 
 
-class Terrain(BasicModel):
+class Terrain(Model):
     
     def __init__(self,n_vertex):
         self.vertices = (
