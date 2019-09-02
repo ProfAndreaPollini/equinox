@@ -1,6 +1,6 @@
 import os, os.path
 from equinox.core import equinox_create_window,equinox_run,key
-from equinox.models import Model,BasicModel,cleanup,Cube,Terrain,load_model_from_file
+from equinox.models import Model,BasicModel,cleanup,Cube,Terrain,load_model_from_file,Entity,Mesh
 from equinox.render import Renderer,renderer_init,Camera
 
 import glm
@@ -26,23 +26,27 @@ H = 800
 window,fps_display = equinox_create_window(W,H,debug_fps=True)
 
 models = []
-cube_model_mesh =  Model.mesh_from_file(os.path.join(os.path.dirname(__file__),"tree.obj"))
-model = BasicModel.model_from_mesh(cube_model_mesh)
-model.scale = glm.vec3(0.001)
-model.load()
+cube_model_mesh =  Mesh.mesh_from_file(os.path.join(os.path.dirname(__file__),"tree.obj"))
+# model = BasicModel.model_from_mesh(cube_model_mesh)
+# model.scale = glm.vec3(0.001)
+# model.load()
 
-terrain_model_mesh =  Model.mesh_from_file(os.path.join(os.path.dirname(__file__),"terrain.obj"))
+terrain_model_mesh =  Mesh.mesh_from_file(os.path.join(os.path.dirname(__file__),"terrain.obj"))
 terrain_model = BasicModel.model_from_mesh(terrain_model_mesh)
-terrain_model.pos = glm.vec3(-20,0,-20)
+terrain = Entity(terrain_model)
+terrain.pos = glm.vec3(-20,0,-20)
 terrain_model.load()
 
 for i in range(10):
-    terrain_model.pos = glm.vec3(20*random()-10,1.0,20*random()-10)
-    models.append(model)#Cube.create())
-models.append(terrain_model)
-#terrain = Terrain(800)
-#terrainModel  = terrain.create()
-#models.append(terrainModel)
+    model = BasicModel.model_from_mesh(cube_model_mesh)
+   
+    tree = Entity(model)
+    model.load()
+    tree.pos = glm.vec3(200*random()-100,0.0,200*random()-100)
+    terrain.pos = glm.vec3(20*random()-10,0.0,20*random()-10)
+    models.append(tree)
+
+models.append(terrain)
 
 renderer = Renderer()
 camera = Camera(W,H)
@@ -53,9 +57,9 @@ camera = Camera(W,H)
 @window.event
 def on_draw():
     
-    renderer.prepare()
+    renderer.use()
    
-    renderer.render(camera,models)
+    renderer.render(camera, models)
     #fps_display.draw()
    
 

@@ -6,7 +6,7 @@ from pyglet.gl import *
 from ctypes import *
 import glm
 
-
+from equinox.render.camera import Camera
 
 class BaseShader:
 
@@ -43,11 +43,12 @@ class BaseShader:
 
     
 
-    def bind(self,camera):
-       
+    def bind(self, camera: Camera):
         glUseProgram(self.program) 
-        #self.setUniformMat4('viewMatrix',camera.viewMatrix)
-        #self.setUniformMat4('projectMatrix',camera.projectMatrix())  
+        self.setUniformVec3("viewPos",camera.pos)
+        self.setUniformMat4("viewMatrix",camera.viewMatrix())
+        self.setUniformMat4("projectMatrix",camera.projectMatrix())
+            
           
     @property
     def shader(self):

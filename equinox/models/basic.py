@@ -10,7 +10,9 @@ from pyglet.gl import *
 import tinyobjloader
 
 
-from .mesh import Mesh, ModelMesh
+from .mesh import Mesh, ModelMesh,RawMesh,TexturedMesh
+
+
 
 
 
@@ -65,16 +67,23 @@ def bindIndicesToBuffer(indices):
 
 class Model(ABC):
 
-    def __init__(self):
-        self.pos = glm.vec3(2.0*random()-1,1.0,2.0*random()-1)
-        #glm.mat4 model = glm.mat4(1.0f)
-        #model = glm.rotate(model, glm.radians(-55.0f), glm.vec3(1.0f, 0.0f, 0.0f))
-        self.angle = glm.vec3(0.0,0.0,0.0)#glm.vec3(random()*90.0,random()*90.0,random()*90.0)
-        self.scale = glm.vec3(1.0)
-        self.color = glm.vec3(random(),random(),random())
-        self.update()
+    
+    def vao_from_RawMesh(self, mesh: RawMesh):
+        vaoID = createVAO()
+        bindIndicesToBuffer([i for i in range(len(mesh.vertices))])
+        storeDataInVBO(0, 3, mesh.vertices)
+        storeDataInVBO(1, 3, mesh.normals)
+        unbindVAO()
+        self.vaos.append(vaoID)
 
-    def scale(self,scale_vec3):
+    def __init__(self):
+        self.pos = glm.vec3(2.0*random()-1, 1.0, 2.0 * random()-1)
+        self.angle = glm.vec3(0.0,0.0,0.0)
+        self.scale = glm.vec3(1.0)
+        self.update()
+        self.mesh_data: ModelMesh
+       
+    def scale(self, scale_vec3):
         self.scale = scale_vec3
 
     def rotate(self,v):
@@ -93,75 +102,31 @@ class Model(ABC):
 
     def update(self):
         self.modelMatrix = glm.mat4(1.0)
+        
         self.modelMatrix = glm.translate(self.modelMatrix,self.pos);
-        self.modelMatrix = glm.scale(self.modelMatrix,self.scale );
-        self.modelMatrix = glm.rotate(self.modelMatrix, glm.radians(self.angle.x), glm.vec3(1.0, 0.0, 0.0)); 
-        self.modelMatrix = glm.rotate(self.modelMatrix, glm.radians(self.angle.y), glm.vec3(0.0, 1.0, 0.0)); 
-        self.modelMatrix = glm.rotate(self.modelMatrix, glm.radians(self.angle.z), glm.vec3(0.0, 0.0, 1.0)); 
+        
+        self.modelMatrix = glm.rotate(self.modelMatrix, glm.radians(self.angle.x), glm.vec3(1.0, 0.0, 0.0))
+        self.modelMatrix = glm.rotate(self.modelMatrix, glm.radians(self.angle.y), glm.vec3(0.0, 1.0, 0.0))
+        self.modelMatrix = glm.rotate(self.modelMatrix, glm.radians(self.angle.z), glm.vec3(0.0, 0.0, 1.0))
+        #self.modelMatrix = glm.scale(self.modelMatrix,self.scale );
     
-    @staticmethod
-    def mesh_from_file(filename: str):
-        reader = tinyobjloader.ObjReader()
-        ret = reader.ParseFromFile(filename)
-        if ret == False:
-            print("Warn:", reader.Warning())
-            print("Err:", reader.Error())
-            print("Failed to load : ", filename)
-            
-        if reader.Warning():
-            print("Warn:", reader.Warning())
-
-        attrib = reader.GetAttrib()
-        print("attrib.vertices = ", len(attrib.vertices))
-        print("attrib.normals = ", len(attrib.normals))
-        print("attrib.texcoords = ", len(attrib.texcoords))
-        shapes = reader.GetShapes()
-        print("Num shapes: ", len(shapes))
     
-        model_mesh =  ModelMesh()
-
-        for shape in shapes:
-            print(shape.name)
-            print("num_indices = {}".format(len(shape.mesh.indices)))
-
-            vertices = []
-            normals = []
-            uvCoords = []
-
-            for idxs in shape.mesh.indices:
-                vertices.extend(attrib.vertices[3*idxs.vertex_index:3*idxs.vertex_index+3])
-                normals.extend(attrib.vertices[3*idxs.normal_index:3*idxs.normal_index+3])
-                uvCoords.extend(attrib.texcoords[2*idxs.texcoord_index:2*idxs.texcoord_index+2])
-            
-            for i in range(len(vertices)//9):
-                p0 = glm.vec3(*vertices[9*i:9*i+3])
-                p1 = glm.vec3(*vertices[9*i+3:9*i+6])
-                p2 = glm.vec3(*vertices[9*i+6:9*i+9])
-                v0 = p1-p0
-                v1 = p2-p0
-                N = glm.normalize(glm.cross(v0,v1))
-                
-                normals[9*i] = N.x
-                normals[9*i+1] = N.y
-                normals[9*i+2] = N.z
-                normals[9*i+3] = N.x
-                normals[9*i+4] = N.y
-                normals[9*i+5] = N.z
-                normals[9*i+6] = N.x
-                normals[9*i+7] = N.y
-                normals[9*i+8] = N.z
-            #print(f"Adding mesh of {len(vertices),")
-            model_mesh.add(Mesh(vertices,normals,uvCoords))
-        return model_mesh
 
     @staticmethod
-    @abstractmethod
-    def model_from_mesh(self,filename):
-        pass
+    def model_from_mesh(model_mesh: ModelMesh):
+        model = BasicModel()
+        model.mesh_data = model_mesh
+        return model
 
     
-    @abstractmethod
     def load(self):
+        self.vaos = []
+        for mesh in self.mesh_data.mesh_list:
+            method_name = str(type(mesh)).split(".")[-1].split("'")[0]
+            getattr(self, 'vao_from_'+method_name)(mesh)
+            
+    @abstractmethod
+    def draw(self, shader):
         pass
 
 class BasicModel(Model):
@@ -174,7 +139,7 @@ class BasicModel(Model):
         return BasicModel(vao=vaoID,size = len(vertices)/3)
 
     @staticmethod
-    def create(vertices,normals):
+    def create(vertices, normals):
         vaoID = createVAO()
         storeDataInVBO(0,3,vertices)
         storeDataInVBO(1,3,normals)
@@ -182,7 +147,7 @@ class BasicModel(Model):
         return BasicModel(vao=vaoID,size = len(vertices)/3)
 
     @staticmethod
-    def create(indices,vertices,normals):
+    def create(indices, vertices, normals):
         model_mesh = ModelMesh()
         model_mesh.add(Mesh())
         model = BasicModel()
@@ -196,11 +161,7 @@ class BasicModel(Model):
         
     
             
-    @staticmethod
-    def model_from_mesh(model_mesh: ModelMesh):
-        model = BasicModel()
-        model.mesh_data = model_mesh
-        return model
+    
 
     def _vao_from_mesh(self,aMesh: Mesh):
         vaoID = createVAO()
@@ -210,13 +171,15 @@ class BasicModel(Model):
         unbindVAO()
         self.vaos.append(vaoID)
 
-    def load(self):
-        self.vaos = []
-        for mesh in self.mesh_data.mesh_list:
-            self._vao_from_mesh(mesh)
+    
+  
+       
+    
 
-    def draw(self):
-        for i,vao in enumerate(self.vaos):
+    def draw(self, shader):
+        
+        for i, vao in enumerate(self.vaos):
+            shader.setUniformVec3("objectColor",self.mesh_data.mesh_list[i].material_info.color)
             glBindVertexArray(self.vaos[i])
             glEnableVertexAttribArray(0)
             glEnableVertexAttribArray(1)
