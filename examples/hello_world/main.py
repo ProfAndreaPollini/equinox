@@ -1,8 +1,8 @@
 import os, os.path
 from equinox.core import equinox_create_window,equinox_run,key
-from equinox.models import Model,BasicModel,cleanup,Cube,Terrain,load_model_from_file
-from equinox.render import Renderer,renderer_init,Camera
-
+from equinox.models import Model,cleanup,Terrain,load_model_from_file,Entity,Mesh
+from equinox.render import  Camera, MasterRenderer
+ 
 import glm
 
 from random import random
@@ -26,45 +26,45 @@ H = 800
 window,fps_display = equinox_create_window(W,H,debug_fps=True)
 
 models = []
-cube_model_mesh =  Model.mesh_from_file(os.path.join(os.path.dirname(__file__),"tree.obj"))
-model = BasicModel.model_from_mesh(cube_model_mesh)
-model.scale = glm.vec3(0.001)
-model.load()
+tree_mesh =  Mesh.mesh_from_file(os.path.join(os.path.dirname(__file__),"tree.obj"))
 
-terrain_model_mesh =  Model.mesh_from_file(os.path.join(os.path.dirname(__file__),"terrain.obj"))
-terrain_model = BasicModel.model_from_mesh(terrain_model_mesh)
-terrain_model.pos = glm.vec3(-20,0,-20)
-terrain_model.load()
 
-for i in range(10):
-    terrain_model.pos = glm.vec3(20*random()-10,1.0,20*random()-10)
-    models.append(model)#Cube.create())
-models.append(terrain_model)
-#terrain = Terrain(800)
-#terrainModel  = terrain.create()
-#models.append(terrainModel)
+terrain_mesh = Mesh.mesh_from_file(os.path.join(os.path.dirname(__file__),"terrain.obj"))
+terrain = Entity(terrain_mesh)
+terrain.pos = glm.vec3(-20, 0, -20)
 
-renderer = Renderer()
-camera = Camera(W,H)
+
+for i in range(100):
+   
+    tree = Entity(tree_mesh)
+    
+    tree.move_to(glm.vec3(200*random()-100,0.0,200*random()-100))
+    print(f"tree ({tree}) [{i}] = {tree.pos}")
+    terrain.move_to(glm.vec3(20*random()-10,0.0,20*random()-10))
+    models.append(tree)
+
+models.append(terrain)
+
+renderer = MasterRenderer()
+camera = Camera(W, H)
 
 
 
 
 @window.event
 def on_draw():
-    
+
     renderer.prepare()
-   
-    renderer.render(camera,models)
-    #fps_display.draw()
+
+    renderer.render(camera)
+
    
 
 @window.event  
 def on_key_press(symbol, modifiers):
     print("KEYPRESSED: ",symbol, modifiers)
     cameraSpeed = 0.05
-    
-    
+
 
     if symbol == key.W:
         camera.pos += cameraSpeed * camera.front*2
@@ -75,7 +75,7 @@ def on_key_press(symbol, modifiers):
     if symbol == key.D:
         camera.pos += glm.normalize(glm.cross(camera.front, camera.up)) * cameraSpeed
     
-    #camera.update()
+    
 
 @window.event 
 def on_mouse_motion(x, y, dx, dy):

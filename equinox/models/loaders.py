@@ -2,7 +2,7 @@ import sys
 
 import tinyobjloader
 
-from .basic import bindIndicesToBuffer, storeDataInVBO,BasicModel,createVAO,unbindVAO
+from .model import bindIndicesToBuffer, storeDataInVBO,Model,createVAO,unbindVAO
 from .mesh import Mesh, ModelMesh
 
 def load_model_from_file(filename):
