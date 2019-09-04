@@ -2,14 +2,20 @@
 from typing import List
 from dataclasses import dataclass
 
+
 import glm
 import tinyobjloader
+
+
+from .glutils import *
 
 @dataclass
 class MaterialInfo:
     color: glm.vec3 = None
 
 class Mesh:
+ 
+    registry = {}
     """A mesh contains the geometrical + texture coordinates info that are contained in a Model. 
     Every model can share the mesh with other models"""
     def __init__(self, vertices: List[float], normals: List[float], material_info: MaterialInfo):
@@ -19,6 +25,15 @@ class Mesh:
         self.vertices = vertices
         self.normals = normals
         self.material_info = material_info
+
+        vaoID = createVAO()
+        bindIndicesToBuffer([i for i in range(len(self.vertices))])
+        storeDataInVBO(0, 3, self.vertices)
+        storeDataInVBO(1, 3, self.normals)
+        unbindVAO()
+        Mesh.registry[id(self)] = [self,vaoID]
+        
+      
         
 
     @staticmethod

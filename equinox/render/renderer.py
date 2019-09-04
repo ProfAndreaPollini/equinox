@@ -10,51 +10,92 @@ import pyglet
 
 import glm
 
-from equinox.shaders import BasicShader,LightingShader
+from equinox.shaders import BasicShader,LightingShader,BaseShader
+from equinox.models.mesh import Mesh
+from equinox.models import Entity
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.CRITICAL)
 
-def renderer_init(window):
-    logger.warn(f"renderer_init({window.width}, {window.height})")
-    
+
 class BaseRenderer(ABC):
 
     @abstractmethod
-    def use(self):
+    def prepare(self):
         pass
 
     @abstractmethod
     def render(self,*args,**kwargs):
         pass
 
-# class MasterRenderer:
 
-#     def __init__(self):
-#         self.renderers = []
+class Renderer:
 
-#     def add(self, renderer : BaseRenderer):
-#         self.renderers.append(renderer)
+    def __init__(self, shader=None):
+        self.shader = shader
+        glEnable(GL_DEPTH_TEST)
+        glDepthFunc(GL_LESS)
+        
+    def prepare(self,camera):
+        self.shader.start()
+        self.shader.set_camera(camera)
+        self.shader.setUniformVec3("lightPos", glm.vec3(0.0, 4.0, 3.0))
 
-class Renderer(BaseRenderer):
+    def cleanup(self):
+        self.shader.stop()
 
-        def __init__(self):
-            self.shader = BasicShader()
-            self.lightingShader = LightingShader()
-            glEnable(GL_DEPTH_TEST)
-            glDepthFunc(GL_LESS)
+    def prepareMaterial(self, material_info):
+        self.shader.setUniformVec3("objectColor", material_info.color)
+    
+    # def renderEntity(self):
+    #     pass
+    #     #print(len(self.mesh_data.mesh_list[i].vertices))
+        
+    def renderEntities(self, entities,material_info,mesh,vao):
+        self.prepareMaterial(material_info)
+
+        glBindVertexArray(vao)
+        glEnableVertexAttribArray(0)
+        glEnableVertexAttribArray(1)
+        glEnableVertexAttribArray(2)
+        for entity in entities:
+            self.shader.setUniformMat4("modelMatrix", entity.model_matrix)
+            #self.shader.setUniformVec3("objectColor", material_info.color)
             
+            #self.renderEntity(self.shader)
+            glDrawElements(GL_TRIANGLES, int(len(mesh.vertices)), GL_UNSIGNED_INT, 0)
+        glDisableVertexAttribArray(2)
+        glDisableVertexAttribArray(1)
+        glDisableVertexAttribArray(0)
+        glBindVertexArray(0)
 
-        def use(self):
-            glClearColor(0.0,0.0,0.0,1.0)
-            glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
-        def render(self, camera, entities):
-            self.lightingShader.bind(camera)
-            self.lightingShader.setUniformVec3("lightPos", glm.vec3(0.0,4.0,3.0))
-            
-            for entity in entities:
-                entity.draw(self.lightingShader)
-
+        #self.shader.stop()
         
 
+class MasterRenderer:
+
+    def __init__(self):
+        
+       
+        self.shader = LightingShader()
+        self.renderer = Renderer(self.shader)
+
+    def prepare(self):
+        glClearColor(0.0, 0.0, 1.0, 1.0)
+        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+
+    def render(self, camera):
+        self.renderer.prepare(camera)
+        
+        for mesh_id,entities in Entity.entities.items():
+            mesh:Mesh = Mesh.registry[mesh_id][0]
+            mesh_vao  = Mesh.registry[mesh_id][1]
+            #print(f"{mesh_id} [{mesh_vao}] => {mesh.material_info}")
+            self.renderer.renderEntities(entities, mesh.material_info,mesh,mesh_vao)
+        self.renderer.cleanup()
+
+
+    def cleanUp(self):
+        pass

@@ -1,3 +1,4 @@
 
-from .renderer import renderer_init,Renderer
+from .renderer import MasterRenderer
+
 from .camera import Camera

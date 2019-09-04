@@ -1,7 +1,7 @@
 import pyglet
 from pyglet.gl import *
 
-from ..render import renderer_init
+
 
 from ..core.events import equinoxEvents
 

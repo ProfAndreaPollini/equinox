@@ -2,17 +2,32 @@
 
 This module defines the Entity concept. An Entity is an object that will be displayed on the screen
 """
+
+import weakref
 from random import random
 
 import glm
 
 class Entity:
-    def __init__(self, model):
-        self.model = model
-        self.pos = glm.vec3(0.0, 0.0, 0.0)
-        self.angle = glm.vec3(0.0, 0.0, 0.0)#glm.vec3(random()*90.0,random()*90.0,random()*90.0)
-        self.scale = glm.vec3(1.0)
+
+    entities = {}
+    
+    def __init__(self, model_mesh, pos = glm.vec3(0.0, 0.0, 0.0), angle = glm.vec3(0.0, 0.0, 0.0),scale = glm.vec3(1.0) ):
+        self.model_mesh = model_mesh
+        self.pos = pos
+        self.angle = angle
+        self.scale = scale
         self.update()
+        #model_name = str(self.model).split('.')[-1].split()[0]
+ 
+        print(f"XXX -> {[str(id(x)) for x in self.model_mesh.mesh_list]}")
+        for mesh_id in [id(x) for x in self.model_mesh.mesh_list]:
+            if mesh_id not in Entity.entities:
+                Entity.entities[mesh_id] = [self,]
+            else:
+                Entity.entities[mesh_id].append(self)
+
+        print(f"ENTITIES = [{Entity.entities}]") 
 
     def scale_by(self, v: glm.vec3):
         self.scale = v
@@ -49,6 +64,6 @@ class Entity:
         self.model_matrix = glm.rotate(self.model_matrix,\
              glm.radians(self.angle.z), glm.vec3(0.0, 0.0, 1.0))
 
-    def draw(self, shader):
-        shader.setUniformMat4("modelMatrix", self.model_matrix)
-        self.model.draw(shader)
+    #def draw(self, shader):
+        
+    #    self.model.draw(shader)

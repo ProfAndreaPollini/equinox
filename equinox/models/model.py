@@ -74,6 +74,7 @@ class Model:
         storeDataInVBO(0, 3, mesh.vertices)
         storeDataInVBO(1, 3, mesh.normals)
         unbindVAO()
+        Mesh.registry[id(mesh)] = [mesh,vaoID]
         self.vaos.append(vaoID)
 
     def __init__(self):
@@ -86,17 +87,22 @@ class Model:
         model.mesh_data = model_mesh
         return model
 
-    
+
     def load(self):
         
         for mesh in self.mesh_data.mesh_list:
             method_name = str(type(mesh)).split(".")[-1].split("'")[0]
             getattr(self, 'vao_from_'+method_name)(mesh)
+            
 
+    def get_mesh_info(self):
+        pass
+        #for mesh in self.mesh_data.mesh_list:
+  
     def draw(self, shader):
         
         for i, vao in enumerate(self.vaos):
-            shader.setUniformVec3("objectColor", self.mesh_data.mesh_list[i].material_info.color)
+            
             glBindVertexArray(self.vaos[i])
             glEnableVertexAttribArray(0)
             glEnableVertexAttribArray(1)
