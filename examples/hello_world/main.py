@@ -1,6 +1,6 @@
 import os, os.path
 from equinox.core import equinox_create_window,equinox_run,key
-from equinox.models import Model,cleanup,Terrain,load_model_from_file,Entity,Mesh
+from equinox.models import Model,cleanup,load_model_from_file,Entity,Mesh
 from equinox.render import  Camera, MasterRenderer
  
 import glm
@@ -23,7 +23,7 @@ W = 1600
 H = 800
 
 # Direct OpenGL commands to this window.
-window,fps_display = equinox_create_window(W,H,debug_fps=True)
+window, fps_display = equinox_create_window(W,H,debug_fps=True)
 
 models = []
 tree_mesh =  Mesh.mesh_from_file(os.path.join(os.path.dirname(__file__),"tree.obj"))
@@ -47,8 +47,6 @@ models.append(terrain)
 
 renderer = MasterRenderer()
 camera = Camera(W, H)
-
-
 
 
 @window.event

@@ -14,3 +14,9 @@ class LightingShader(BaseShader):
         super().__init__(
             os.path.join(os.path.dirname(__file__), "data/basic_light_vs.glsl"),
             os.path.join(os.path.dirname(__file__), "data/basic_light_fs.glsl"))
+
+class TexturedShader(BaseShader):  
+    def __init__(self):   
+        super().__init__(
+            os.path.join(os.path.dirname(__file__), "data/textured_vs.glsl"),
+            os.path.join(os.path.dirname(__file__), "data/textured_fs.glsl"))

@@ -1,2 +1,2 @@
-from .basic import BasicShader,LightingShader
+from .basic import BasicShader, LightingShader, TexturedShader
 from .core import BaseShader

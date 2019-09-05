@@ -7,11 +7,14 @@ import glm
 import tinyobjloader
 
 
+from .texture import Texture
 from .glutils import *
 
 @dataclass
 class MaterialInfo:
     color: glm.vec3 = None
+    texture: Texture = None 
+    
 
 class Mesh:
  
@@ -62,7 +65,7 @@ class Mesh:
             print(shape.name)
             print("num_indices = {}".format(len(shape.mesh.indices)))
             print(f"material = [{reader.GetMaterials()[num_shape].ambient}]")
-            print(f"material = [{reader.GetMaterials()[num_shape].ambient_texname}]")
+            print(f"material = [{reader.GetMaterials()[num_shape].diffuse_texname}]")
             
 
             vertices = []
@@ -93,8 +96,10 @@ class Mesh:
                 normals[9*i+8] = N.z
             #print(f"Adding mesh of {len(vertices),")
             material_info = MaterialInfo()
-            mesh = None
-            if not reader.GetMaterials()[num_shape].ambient_texname == "":
+            texture_path = reader.GetMaterials()[num_shape].diffuse_texname
+            
+            if not texture_path == "":
+                material_info.texture = Texture(texture_path)
                 mesh = TexturedMesh(vertices, normals, uvCoords, material_info)
             else:
                 material_info.color = glm.vec3(*reader.GetMaterials()[num_shape].diffuse)
@@ -117,6 +122,16 @@ class TexturedMesh(Mesh):
     def __init__(self, vertices: List[float], normals: List[float], texture_coords: List[float], material_info: MaterialInfo):
         super().__init__(vertices, normals, material_info)
         self.texture_coords = texture_coords
+        
+
+
+        vaoID = createVAO()
+        bindIndicesToBuffer([i for i in range(len(self.vertices))])
+        storeDataInVBO(0, 3, self.vertices)
+        storeDataInVBO(1, 3, self.normals)
+        storeDataInVBO(2, 2, self.texture_coords)
+        unbindVAO()
+        Mesh.registry[id(self)] = [self, vaoID]
    
 
 

@@ -10,7 +10,7 @@ import pyglet
 
 import glm
 
-from equinox.shaders import BasicShader,LightingShader,BaseShader
+from equinox.shaders import BasicShader,LightingShader,BaseShader,TexturedShader
 from equinox.models.mesh import Mesh
 from equinox.models import Entity
 
@@ -46,19 +46,26 @@ class Renderer:
         self.shader.stop()
 
     def prepareMaterial(self, material_info):
-        self.shader.setUniformVec3("objectColor", material_info.color)
+        if material_info.color:
+            self.shader.setUniformVec3("objectColor", material_info.color)
+        else:
+            
+            glActiveTexture(GL_TEXTURE0)
+            glBindTexture(material_info.texture.texture.target, material_info.texture.texture.id)
     
     # def renderEntity(self):
     #     pass
     #     #print(len(self.mesh_data.mesh_list[i].vertices))
         
     def renderEntities(self, entities,material_info,mesh,vao):
-        self.prepareMaterial(material_info)
+        
 
         glBindVertexArray(vao)
         glEnableVertexAttribArray(0)
         glEnableVertexAttribArray(1)
         glEnableVertexAttribArray(2)
+        self.prepareMaterial(material_info)
+
         for entity in entities:
             self.shader.setUniformMat4("modelMatrix", entity.model_matrix)
             #self.shader.setUniformVec3("objectColor", material_info.color)
@@ -80,6 +87,7 @@ class MasterRenderer:
         
        
         self.shader = LightingShader()
+        self.texturedShader = TexturedShader()
         self.renderer = Renderer(self.shader)
 
     def prepare(self):
@@ -87,13 +95,18 @@ class MasterRenderer:
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
     def render(self, camera):
-        self.renderer.prepare(camera)
+        
         
         for mesh_id,entities in Entity.entities.items():
             mesh:Mesh = Mesh.registry[mesh_id][0]
             mesh_vao  = Mesh.registry[mesh_id][1]
+            if mesh.material_info.color:
+                self.renderer.shader = self.shader
+            elif mesh.material_info.texture:
+                self.renderer.shader = self.texturedShader
+            self.renderer.prepare(camera)
             #print(f"{mesh_id} [{mesh_vao}] => {mesh.material_info}")
-            self.renderer.renderEntities(entities, mesh.material_info,mesh,mesh_vao)
+            self.renderer.renderEntities(entities, mesh.material_info, mesh, mesh_vao)
         self.renderer.cleanup()
 
 

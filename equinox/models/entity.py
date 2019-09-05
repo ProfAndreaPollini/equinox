@@ -27,7 +27,7 @@ class Entity:
             else:
                 Entity.entities[mesh_id].append(self)
 
-        print(f"ENTITIES = [{Entity.entities}]") 
+        #print(f"ENTITIES = [{Entity.entities}]") 
 
     def scale_by(self, v: glm.vec3):
         self.scale = v
